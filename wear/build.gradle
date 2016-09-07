@@ -2,13 +2,23 @@ apply plugin: 'com.android.application'
 
 
 android {
+
+    signingConfigs {
+        config {
+            keyAlias "udacity"
+            keyPassword "adadech"
+            storeFile file("/home/dean/Desktop/Sunshine_Wear/keysigning.jks")
+            storePassword "adadech"
+        }
+    }
+
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.example.dean.wear"
         minSdkVersion 21
-        targetSdkVersion 24
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
     }
@@ -16,6 +26,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+            debuggable true
+        }
+
+        debug {
+            signingConfig signingConfigs.config
         }
     }
 }
@@ -23,5 +39,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.google.android.support:wearable:2.0.0-alpha2'
-    compile 'com.google.android.gms:play-services-wearable:8.4.0'
+    compile 'com.google.android.gms:play-services-wearable:9.2.0'
 }
