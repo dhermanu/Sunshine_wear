@@ -39,6 +39,10 @@
         android:protectionLevel="signature" />
     <uses-permission android:name="com.example.android.sunshine.app.permission.C2D_MESSAGE" />
 
+    <!-- Permissions required for Android wearable-->
+    <uses-permission android:name="com.google.android.permission.PROVIDE_BACKGROUND"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -170,6 +174,13 @@
             android:name=".gcm.RegistrationIntentService"
             android:exported="false" >
         </service>
+
+        <!-- Wearable services -->
+        <service
+            android:name=".SunshineWatchService"
+            android:exported="false">
+        </service>
+
     </application>
 
 </manifest>
