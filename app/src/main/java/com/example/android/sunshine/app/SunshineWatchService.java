@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -13,6 +14,7 @@ import com.example.android.sunshine.app.data.WeatherContract;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -56,6 +58,9 @@ public class SunshineWatchService extends Service
                     (this, cursor
                             .getDouble(cursor.getColumnIndex
                                     (WeatherContract.WeatherEntry.COLUMN_MAX_TEMP)));
+
+            Log.d("DATA", high);
+            Log.d("DATA", low);
             PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(PATH_WEATHER);
             putDataMapRequest.getDataMap().putInt(KEY_ID, id);
             putDataMapRequest.getDataMap().putString(KEY_MAX_TEMP, high);
@@ -63,6 +68,17 @@ public class SunshineWatchService extends Service
 
             PendingResult<DataApi.DataItemResult> pendingResult =
                     Wearable.DataApi.putDataItem(mGoogleApiClient, putDataMapRequest.asPutDataRequest());
+
+            pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                @Override
+                public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
+                    if (dataItemResult.getStatus().isSuccess()) {
+                        Log.d("AdapterWear", "DataItem stored Successfully");
+                    } else {
+                        Log.d("AdapterWear", "DataItem not stored");
+                    }
+                }
+            });
 
         }
         cursor.close();

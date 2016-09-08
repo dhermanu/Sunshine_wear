@@ -27,7 +27,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -35,7 +34,6 @@ import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateFormat;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
@@ -47,10 +45,9 @@ import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.lang.ref.WeakReference;
@@ -59,7 +56,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -77,9 +73,9 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
 
 
-    private static final String KEY_ID = "KEY_WEATHER_IDD";
-    private static final String KEY_MAX_TEMP = "KEY_MAX_TEMP";
-    private static final String KEY_MIN_TEMP = "KEY_MIN_TEMP";
+    private static final String KEY_ID = "WEATHER_ID";
+    private static final String KEY_MAX_TEMP = "MAX_TEMP";
+    private static final String KEY_MIN_TEMP = "MIN_TEMP";
     private static final String PATH_WEATHER = "/weather";
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
 
@@ -459,11 +455,14 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             for (DataEvent dataEvent : dataEvents) {
                 if (dataEvent.getType() != DataEvent.TYPE_CHANGED) {
                     DataItem dataItem = dataEvent.getDataItem();
+                    Log.d("DATACHANGE_PATH", dataItem.getUri().getPath());
                     if(dataItem.getUri().getPath().equals(PATH_WEATHER)){
                         assignDataChanged(dataItem);
                     }
                 }
+                invalidate();
             }
+            dataEvents.release();
         }
 
         public void assignDataChanged(DataItem dataItem){
@@ -498,24 +497,57 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
         @Override  // GoogleApiClient.ConnectionCallbacks
         public void onConnected(Bundle connectionHint) {
-            Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
-            PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(PATH_WEATHER);
-            putDataMapRequest.getDataMap().putString("DATA", UUID.randomUUID().toString());
-            PutDataRequest putDataRequest = putDataMapRequest.asPutDataRequest();
 
-            Wearable.DataApi.putDataItem(mGoogleApiClient, putDataRequest)
-                    .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+            Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
+            Wearable.DataApi.getDataItems(mGoogleApiClient).setResultCallback(new ResultCallback<DataItemBuffer>() {
                 @Override
-                public void onResult(DataApi.DataItemResult dataItemResult) {
-                    if(dataItemResult.getStatus().isSuccess()){
-                        Log.d("TIGGER", "TRIGGER SUCCESS");
+                public void onResult(DataItemBuffer dataItems) {
+                    if (dataItems.getStatus().isSuccess()) {
+                        Log.d("WatchService", "DataItem stored Successfully");
+                        Log.d("PATH_STRING", PATH_WEATHER);
+                        for (DataItem item : dataItems) {
+;
+                            if (PATH_WEATHER.equals(item.getUri().getPath())) {
+
+                                DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+
+                                mMinTemp = dataMap.getString(KEY_MIN_TEMP);
+
+                                if(mMinTemp != null){
+                                    Log.d("MINTEMP", mMinTemp);
+                                }
+
+                                else{
+                                    Log.d("MINTEMP", "EMPTY");
+                                }
+
+                                mMaxTemp = dataMap.getString(KEY_MAX_TEMP);
+                                if(mMinTemp != null){
+                                    Log.d("MAXTEMP", mMaxTemp);
+                                }
+
+                                else{
+                                    Log.d("TEMP", "EMPTY");
+                                }
+
+                                if (dataMap.containsKey(KEY_ID)) {
+                                    int mWeatherId = dataMap.getInt(KEY_ID);
+                                    mWeatherImage = BitmapFactory
+                                            .decodeResource(getResources(),SunshineWatchFaceUtil
+                                                    .getImageResource(mWeatherId));
+                                }
+
+                            }
+                        }
+                        invalidate();
+                        dataItems.release();
+                    } else {
+                        Log.d("WatchSercvice", "DataItem not stored");
                     }
-                    if(!dataItemResult.getStatus().isSuccess()){
-                        Log.d("TIGGER", "TRIGGER FAILED");
-                    }
+
+
                 }
             });
-
         }
 
         private void handleUpdateTimeMessage() {

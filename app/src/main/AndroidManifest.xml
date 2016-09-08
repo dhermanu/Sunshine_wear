@@ -175,17 +175,6 @@
             android:exported="false" >
         </service>
 
-        <!-- Wearable services -->
-        <service
-            android:name=".SunshineWatchService"
-            android:exported="false">
-        </service>
-
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version">
-
-        </meta-data>
     </application>
 
 </manifest>
