@@ -192,9 +192,7 @@ public final class SunshineWatchFaceUtil {
 
     private SunshineWatchFaceUtil() { }
 
-    public static int getImageResource(int weatherId) {
-        // Based on weather code data found at:
-        // http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
+    public static int getImageResource(float weatherId) {
         if (weatherId >= 200 && weatherId <= 232) {
             return R.drawable.art_storm;
         } else if (weatherId >= 300 && weatherId <= 321) {
@@ -218,7 +216,21 @@ public final class SunshineWatchFaceUtil {
         } else if (weatherId >= 802 && weatherId <= 804) {
             return R.drawable.art_clouds;
         }
-        return -1;
+        return R.mipmap.ic_launcher;
+    }
+
+    public static String formatTemperature(String temperature) {
+        // Data stored in Celsius by default.  If user prefers to see in Fahrenheit, convert
+        // the values here.
+
+        // For presentation, assume the user doesn't care about tenths of a degree.
+        double temp= Math.round(Double.parseDouble(temperature));
+        int intTemp = (int) temp;
+        StringBuilder sb = new StringBuilder();
+        sb.append(Integer.toString((int) temp));
+        sb.append("\u00B0");
+
+        return new String(sb);
     }
 
 

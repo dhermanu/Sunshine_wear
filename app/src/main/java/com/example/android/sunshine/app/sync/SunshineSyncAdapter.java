@@ -360,14 +360,15 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
                         new String[] {Long.toString(dayTime.setJulianDay(julianStartDay - 1))});
 
+
                 updateWidgets();
                 updateMuzei();
                 notifyWeather();
-                String[] WatchData = new String[3];
-                WatchData[0] = cvArray[0].get(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID).toString();
-                WatchData[1] = cvArray[0].get(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP).toString();
-                WatchData[2] = cvArray[0].get(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP).toString();
-                updateWatch(WatchData);
+                String[] WearItem = new String[3];
+                WearItem[0] = cvArray[0].get(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID).toString();
+                WearItem[1] = cvArray[0].get(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP).toString();
+                WearItem[2] = cvArray[0].get(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP).toString();
+                updateWatch(WearItem);
             }
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
             setLocationStatus(getContext(), LOCATION_STATUS_OK);
@@ -402,22 +403,24 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(Bundle connectionHint) {
-                        Log.d("TAG", "onConnected: " + connectionHint);
+                        Log.d(LOG_TAG, "Connected");
 
                         PutDataMapRequest dataMapRequest = PutDataMapRequest.create(PATH_WEATHER).setUrgent();
+
                         dataMapRequest.getDataMap().putString(KEY_MIN_TEMP, data[1]);
                         dataMapRequest.getDataMap().putString(KEY_MAX_TEMP, data[2]);
                         dataMapRequest.getDataMap().putString(KEY_ID ,data[0]);
                         dataMapRequest.getDataMap().putLong("time",System.currentTimeMillis());
                         PutDataRequest request = dataMapRequest.asPutDataRequest();
+
                         Wearable.DataApi.putDataItem(mGoogleApiClient, request).setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                             @Override
                             public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
 
                                 if (dataItemResult.getStatus().isSuccess()) {
-                                    Log.d("WatchService", "DataItem stored Successfully");
+                                    Log.d(LOG_TAG, "Item sent");
                                 } else {
-                                    Log.d("WatchSercvice", "DataItem not stored");
+                                    Log.d("SyncAdapter", "Item not sent");
                                 }
 
                             }
@@ -426,16 +429,15 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
                     @Override
                     public void onConnectionSuspended(int cause) {
-                        Log.d("TAG", "onConnectionSuspended: " + cause);
+                        Log.d(LOG_TAG, "Connection Suspended");
                     }
                 })
                 .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(ConnectionResult result) {
-                        Log.d("TAG", "onConnectionFailed: " + result);
+                        Log.d(LOG_TAG, "Connection Failed");
                     }
                 })
-                // Request access only to the Wearable API
                 .addApi(Wearable.API)
                 .build();
 
